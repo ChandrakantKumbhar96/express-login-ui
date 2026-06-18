@@ -15,6 +15,13 @@ pipeline {
 
     stages {
 
+        stage('Clone Source') {
+            steps {
+                git branch: 'main',
+                url: 'https://github.com/ChandrakantKumbhar96/express-login-ui.git'
+            }
+        }
+
         stage('Cleanup Old Container & Image') {
             steps {
                 sh '''
@@ -37,9 +44,14 @@ pipeline {
         }
 
         stage('Docker Login') {
+
+            environment {
+                DOCKER_CREDS = credentials('DockerHubCreds')
+            }
+
             steps {
                 sh '''
-                    echo "dckr_pat_Q3aP3IQwYspjt7BYvshd3ojHiCE" | docker login -u "chandrakantdevop" --password-stdin
+                    echo "$DOCKER_CREDS_PSW" | docker login -u "$DOCKER_CREDS_USR" --password-stdin
                 '''
             }
         }
@@ -58,8 +70,6 @@ pipeline {
             steps {
                 sh '''
                     echo "Running Container"
-
-                    docker rm -f $APP_NAME || true
 
                     docker run -d \
                     --name $APP_NAME \
